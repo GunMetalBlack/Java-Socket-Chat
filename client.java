@@ -11,11 +11,13 @@ public class client implements CommandInterface{
     private DataOutputStream network_output = null;
     static CommandInterface sidedCommands;  
     private static boolean continueInputLoop = true;
+    BufferedReader consoleInput = null;
+    public boolean shouldEndConnection = false;
     String message = "";
     //Commands Specific to Client
     public void send(String toSend)
     {
-        System.out.println("Message Sending:" + toSend);
+        System.out.println("Sending: -> " + toSend);
         message = "";
         try {
             network_output.writeUTF(toSend.replace(Command.COMMAND_NAME_SEND, ""));
@@ -24,17 +26,15 @@ public class client implements CommandInterface{
             System.out.println(i);
         }
     }
-
-    public void endConnection()
-    {
+    public void endConnection() {
         // close the connection
-        continueInputLoop = false;
+        shouldEndConnection = true;
         try {
+            consoleInput.close();
             network_input.close();
             network_output.close();
             socket.close();
-        }
-        catch (IOException i) {
+        } catch (IOException i) {
             System.out.println(i);
         }
         System.out.println("!Ending Connection!");
@@ -45,6 +45,7 @@ public class client implements CommandInterface{
         Scanner scnr = new Scanner(System.in);
         System.out.println("Enter User:");
         user = scnr.nextLine() + ":";
+        System.out.println("------------------------------------------");
         // establish a connection
         try {
             socket = new Socket(addy, port);
@@ -53,23 +54,45 @@ public class client implements CommandInterface{
             network_input = new DataInputStream(socket.getInputStream());
             
             // takes input from terminal
-            BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
+            consoleInput = new BufferedReader(new InputStreamReader(System.in));
 
             // sends output to the socket
             network_output = new DataOutputStream(
                 socket.getOutputStream());
 
-            while(continueInputLoop)
-            {
-                try {
-                    message = user + message.replace(user, "") + consoleInput.readLine();
-                    checkCommand(message);
-                }
-                catch (IOException i) {
-                    System.out.println(i);
+                checkCommand(user + Command.COMMAND_NAME_SEND);
+                String line = "";
+
+                while (!shouldEndConnection) {
+                    while (!continueInputLoop)
+                    {
+                        System.out.println("Attempting to Read Incomming Data:");
+                        try
+                        {
+                            line = network_input.readUTF();
+                            if(line.length() > 0){System.out.println(line);}else{System.out.print("No Data Found -> Moving to Input");}
+                            continueInputLoop  = true;
+                        }
+                        catch(IOException i)
+                        {
+                            System.out.println(i);
+                        }
+                    }
+                    while(continueInputLoop)
+                    {
+                        try {
+                            System.out.println("Enter a message or command:");
+                            message = user + message.replace(user, "") + consoleInput.readLine();
+                            checkCommand(message);
+                            continueInputLoop = false;
+                        }
+                        catch (IOException i) {
+                            System.out.println(i);
+                        }
+                    
+                    }   
                 }
             }
-        }
         catch (UnknownHostException u) {
             System.out.println(u + "You done fucked up jimmy");
             return;
