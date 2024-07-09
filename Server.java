@@ -11,7 +11,7 @@ public class Server implements CommandInterface{
     private DataOutputStream network_output = null;
     BufferedReader consoleInput = null;
     private String message = "";
-    private static boolean continueInputLoop = true;
+    private static boolean continueInputLoop = false;
     public static String user = "Server:";
     public boolean shouldEndConnection = false;
     private String connectedUserName = "";
@@ -22,6 +22,7 @@ public class Server implements CommandInterface{
         message = "";
         try {
             network_output.writeUTF(toSend.replace(Command.COMMAND_NAME_SEND, ""));
+            continueInputLoop = false;
         } catch (IOException i) {
             System.out.println(i);
         }
@@ -71,11 +72,11 @@ public class Server implements CommandInterface{
                 {
                     if(firstPacketRecived)
                     {
-                        System.out.println("Attempting to Read Incomming Data:");
+                        System.out.println("Attempting to Read Incomming Data from " + connectedUserName);
                         try
                         {
                             line = network_input.readUTF();
-                            if(line.length() > 0){System.out.println(line);}else{System.out.print("No Data Found -> Moving to Input");}
+                            if(line.length() > 0){System.out.println("---------------------\n"+"  RECIVED -> "+line + "\n---------------------");}else{System.out.print("No Data Found -> Moving to Input");}
                             continueInputLoop  = true;
                         }
                         catch(IOException i)
@@ -85,6 +86,7 @@ public class Server implements CommandInterface{
                     }
                     else
                     {
+                        System.out.println("Got Client Data");
                         try
                         {
                             line = network_input.readUTF();
@@ -104,7 +106,6 @@ public class Server implements CommandInterface{
                         System.out.println("Enter a message or command:");
                         message = user + message.replace(user, "") + consoleInput.readLine();
                         checkCommand(message);
-                        continueInputLoop = false;
                     }
                     catch (IOException i) {
                         System.out.println(i);

@@ -21,6 +21,7 @@ public class client implements CommandInterface{
         message = "";
         try {
             network_output.writeUTF(toSend.replace(Command.COMMAND_NAME_SEND, ""));
+            continueInputLoop = false;
         }
         catch (IOException i) {
             System.out.println(i);
@@ -66,11 +67,11 @@ public class client implements CommandInterface{
                 while (!shouldEndConnection) {
                     while (!continueInputLoop)
                     {
-                        System.out.println("Attempting to Read Incomming Data:");
+                        System.out.println("Attempting to Read Incomming Data from Server:");
                         try
                         {
                             line = network_input.readUTF();
-                            if(line.length() > 0){System.out.println(line);}else{System.out.print("No Data Found -> Moving to Input");}
+                            if(line.length() > 0){System.out.println("---------------------\n"+"  RECIVED -> "+line + "\n---------------------");}else{System.out.print("No Data Found -> Moving to Input");}
                             continueInputLoop  = true;
                         }
                         catch(IOException i)
