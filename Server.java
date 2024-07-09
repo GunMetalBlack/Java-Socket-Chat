@@ -9,8 +9,38 @@ public class Server
     //initialize socket and input stream
     private Socket          socket   = null;
     private ServerSocket    server   = null;
-    private DataInputStream in       =  null;
- 
+    private DataInputStream network_input =  null;
+    private DataOutputStream network_output = null;
+    BufferedReader consoleInput = null;
+        //Commands Specific to Client
+        public void send(String toSend)
+        {
+            System.out.println("Message Sending:" + toSend);
+            message = "";
+            try {
+                network_output.writeUTF(toSend.replace(Command.COMMAND_NAME_SEND, ""));
+            }
+            catch (IOException i) {
+                System.out.println(i);
+            }
+        }
+    
+        public void endConnection()
+        {
+            // close the connection
+            continueInputLoop = false;
+            try {
+                data_input.close();
+                network_output.close();
+                socket.close();
+            }
+            catch (IOException i) {
+                System.out.println(i);
+            }
+            System.out.println("!Ending Connection!");
+        }
+    
+
     // constructor with port
     public Server(int port)
     {
@@ -26,8 +56,13 @@ public class Server
             System.out.println("!Client accepted!");
  
             // takes input from the client socket
-            in = new DataInputStream(
+            network_input = new DataInputStream(
                 new BufferedInputStream(socket.getInputStream()));
+            consoleInput = new BufferedReader(new InputStreamReader(System.in));
+
+            // sends output to the socket
+            network_output = new DataOutputStream(
+                socket.getOutputStream());
  
             String line = "";
  
@@ -36,7 +71,7 @@ public class Server
             {
                 try
                 {
-                    line = in.readUTF();
+                    line = network_input.readUTF();
                     System.out.println(line);
  
                 }
@@ -49,7 +84,7 @@ public class Server
  
             // close connection
             socket.close();
-            in.close();
+            network_input.close();
         }
         catch(IOException i)
         {

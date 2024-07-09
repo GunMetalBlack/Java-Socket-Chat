@@ -7,7 +7,7 @@ import java.io.*;
 public class client implements CommandInterface{
     public String user = "";
     private Socket socket = null;
-    private DataInputStream data_input = null;
+    private DataInputStream network_input = null;
     private DataOutputStream network_output = null;
     static CommandInterface sidedCommands;  
     private static boolean continueInputLoop = true;
@@ -30,7 +30,7 @@ public class client implements CommandInterface{
         // close the connection
         continueInputLoop = false;
         try {
-            data_input.close();
+            network_input.close();
             network_output.close();
             socket.close();
         }
@@ -50,7 +50,7 @@ public class client implements CommandInterface{
             socket = new Socket(addy, port);
             System.out.println("Connected Maybe?");
             // takes input from socket
-            data_input = new DataInputStream(socket.getInputStream());
+            network_input = new DataInputStream(socket.getInputStream());
             
             // takes input from terminal
             BufferedReader consoleInput = new BufferedReader(new InputStreamReader(System.in));
